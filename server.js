@@ -2,12 +2,31 @@ var http = require('http'),
     fs = require('fs'), 
     url = require('url'),
     port = 8080;
-
+    cb = require('child_process');
 /* Global variables */
 var listingData, server;
 
 var requestHandler = function(request, response) {
   var parsedUrl = url.parse(request.url);
+  //response.writeHead(200, {'Content-Type': 'application/json'});
+  var pathname = url.parse(request.url);
+  if( request.url === '/listings'){
+    response.writeHead(200, {'Content-Type': 'application/json'});
+    response.write(listingData);
+    response.end();
+}
+else{
+    cb.exec('node block.js', myCallback);
+}
+
+console.log('New connection');
+
+    function myCallback(){
+        //response.writeHead(200, {'Content-Type': 'text/plain'});
+        response.statusCode = 404;
+        response.write('Bad gateway error');
+        response.end();
+    }
 
   /*
     Your request handler should send listingData in the JSON format as a response if a GET request 
@@ -26,7 +45,18 @@ var requestHandler = function(request, response) {
    */
 };
 
+
 fs.readFile('listings.json', 'utf8', function(err, data) {
+  listingData = data;
+  //listingData = JSON.stringify(data);
+  //const lol = JSON.parse(listingData);
+
+  server = http.createServer(requestHandler);
+  server.listen(port, function(){});
+  console.log('server listening on: http://localhost:8080');
+
+  //let obj = loadJsonFile.sync('/KadoAruleeswar/Fall2019_Bootcamp/listings.json');
+  //console.log(obj.code);
   /*
     This callback function should save the data in the listingData variable, 
     then start the server. 
